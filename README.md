@@ -1,6 +1,7 @@
 # RandomWheelIsWeird
 I think random wheel has a problem. but I don't know what it is. This is the test for random wheel
 ![weird](./weird....png)
+
 As you can see, those counts are not similar with ratios.. why? I don't know.
 I hope someone solve this problem.
 
