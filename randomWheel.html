@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head lang="ko">
+    <meta charset="UTF-8">
+    <title>Test</title>
+    <script src="./jame.js"></script>
+    <script>
+        jame.gameSpeed = 1000;
+        jame.start();
+        jame.setRoom(jame.createRoom("main"));
+        const jameOnLoad = function() {
+            document.body.appendChild(jame.NOW_ROOM.CANVAS);
+            jame.NOW_ROOM.CANVAS.width = 500;
+            jame.NOW_ROOM.CANVAS.height = 500;
+            jame.NOW_ROOM.background = "black";
+        };
+
+        class Wheel extends jame.OBJECT {
+            constructor() {
+                super();
+                this.x = 0;
+                this.y = 0;
+                this.radius = 200;
+                this.angle = 0;
+                this.items = {};
+                this.selected = null;
+                this.speed = 0;
+            }
+
+            addItem(name, scale) {
+                if (this.items[name] == undefined) this.items[name] = {};
+                this.items[name].scale = scale;
+                // set random color
+                this.items[name].color = '#' + Math.floor(777215 + Math.random() * 16000000).toString(16);
+            }
+
+            getSumScale() {
+                let sum = 0;
+                for (let name in this.items) {
+                    sum += parseInt(this.items[name].scale);
+                }
+                return sum;
+            }
+
+            updateEvent() {
+                this.angle += this.speed;
+                this.speed -= 0.02;
+                if (this.speed < 0.01) this.speed = 0;
+                if (this.angle >= 3 / 2 * Math.PI) this.angle = -Math.PI / 2;
+            }
+
+            drawEvent() {
+                let ctx = this.room.CONTEXT;
+                // draw arrow
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y - this.radius);
+                ctx.lineTo(this.x - 5, this.y - this.radius - 10);
+                ctx.lineTo(this.x + 5, this.y - this.radius - 10);
+                ctx.lineTo(this.x, this.y - this.radius);
+                ctx.fillStyle = 'black';
+                ctx.fill();
+                ctx.closePath();
+                // draw wheel
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+                ctx.stroke();
+                ctx.closePath();
+                // draw items
+                let beforeAngle = this.angle;
+                let sumScale = this.getSumScale();
+                for (let name in this.items) {
+                    let item = this.items[name];
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    ctx.arc(this.x, this.y, this.radius, beforeAngle, beforeAngle + (item.scale / sumScale) * 2 * Math.PI);
+                    ctx.fillStyle = item.color;
+                    ctx.fill();
+                    // draw rotated item text
+                    ctx.font = '15px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = 'black';
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(beforeAngle + (item.scale / sumScale) * Math.PI);
+                    ctx.fillText(name, this.radius / 2, 5);
+                    ctx.rotate(-beforeAngle - (item.scale / sumScale) * Math.PI);
+                    ctx.translate(-this.x, -this.y);
+                    ctx.closePath();
+                    if (beforeAngle <= 3 / 2 * Math.PI) this.selected = name;
+                    beforeAngle += (item.scale / sumScale) * 2 * Math.PI;
+                }
+                // draw selected item text
+                ctx.beginPath();
+                ctx.font = '20px Arial';
+                ctx.fillStyle = 'black';
+                ctx.fillText(this.selected, this.x + this.radius, this.y + this.radius);
+                ctx.closePath();
+            }
+        }
+
+        jame.start();
+        jame.createInstance(Wheel, 250, 250);
+
+    </script>
+</head>
+<body onload="jameOnLoad()">
+    <table border="1" style="text-align: center;">
+        <tr>
+            <td>Index</td>
+            <td>0</td>
+            <td>1</td>
+            <td>2</td>
+            <td>3</td>
+            <td>4</td>
+            <td>5</td>
+            <td>6</td>
+            <td>7</td>
+            <td>8</td>
+            <td>9</td>
+        </tr>
+        <tr>
+            <td>Ratio</td>
+            <td id="t0">0</td>
+            <td id="t1">0</td>
+            <td id="t2">0</td>
+            <td id="t3">0</td>
+            <td id="t4">0</td>
+            <td id="t5">0</td>
+            <td id="t6">0</td>
+            <td id="t7">0</td>
+            <td id="t8">0</td>
+            <td id="t9">0</td>
+        </tr>
+        <tr>
+            <td>Count</td>
+            <td id="a0">0</td>
+            <td id="a1">0</td>
+            <td id="a2">0</td>
+            <td id="a3">0</td>
+            <td id="a4">0</td>
+            <td id="a5">0</td>
+            <td id="a6">0</td>
+            <td id="a7">0</td>
+            <td id="a8">0</td>
+            <td id="a9">0</td>
+        </tr>
+    <script>
+        let wheel = jame.INSTANCES[0];
+        let test = [];
+        let sum = 0;
+        for (let i = 0; i < 10; i++) {
+            test[i] = Math.floor(Math.random() * 100);
+            sum += test[i];
+        }
+        for (let i = 0; i < 10; i++) {
+            test[i] = test[i] / sum * 100;
+            document.getElementById('t' + i).innerHTML = Math.floor(test[i] * 100) / 100;
+            wheel.addItem(i, test[i]);
+        }
+
+        let k = 0;
+        let intv = setInterval(function() {
+            if(wheel.speed == 0) {
+                wheel.speed = Math.random() * 1.5 + 1;
+                document.getElementById('a' + wheel.selected).innerHTML = parseInt(document.getElementById('a' + wheel.selected).innerHTML) + 1;
+                k++;
+            }
+            if(k == 1000) clearInterval(intv);
+        }, 1);
+        
+    </script>
+</body>
+</html>
